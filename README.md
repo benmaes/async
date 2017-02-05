@@ -57,6 +57,9 @@ The scenario is from internet television where a user wants to watch an online c
 * Then then an unrelated call out to get the information for a TV channel the user wants to watch
 * Return when all of the above is finished
 * It turns out that the channel call takes a while so it needs to happen concurrently with the first two
+
+
+
 * Then add a timeout so if any of the external call outs don't finish we return with a failure
 * Finally add a fall back if the error is something specific
 
@@ -86,6 +89,8 @@ The scenario is from internet television where a user wants to watch an online c
 
 ### Demo
 
+http://localhost:9080/async/user/chbatey
+
 * Show the synchronous tv service and show the async service we need to 
   implement by the end
 * Show the synchronous test for UserService, ChannelsService and PermissionsService
@@ -107,7 +112,7 @@ Requirement 3: Speed up scenario two by making any independent calls concurrent
 Requirement 4: Remove blocking
 * Given up on synchronous implementation. Explain why.
 * Introduce the ListenableFuture
-* Implement with call backs (urgly)
+* Implement with call backs (ugly)
 * Implement with transforms and then a final callback
 
 Requirement 5: Remove Guava, only use JDK tools

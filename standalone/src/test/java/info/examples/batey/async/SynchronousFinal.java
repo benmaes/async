@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
 
-public class Synchronous {
+public class SynchronousFinal {
 
     private UserService users = UserService.userService();
     private ChannelService channels = ChannelService.channelService();
@@ -106,9 +106,11 @@ public class Synchronous {
      */
     @Test(timeout = 1200)
     public void chbatey_watch_sky_sports_one_fast() throws Exception {
-        user = users.lookupUser("chbatey");             // ~500ms
-        userPermissions = permissions.permissions(user.getUserId());  // ~500ms
-        channel = channels.lookupChannel("SkySportsOne");  // ~500ms
+        ExecutorService es = Executors.newSingleThreadExecutor();
+        Future<Channel> fChannel = es.submit(() -> channels.lookupChannel("SkySportsOne"));
+        user = users.lookupUser("chbatey");
+        userPermissions = permissions.permissions(user.getUserId());
+        channel = fChannel.get();
 
         assertNotNull(channel);
         assertTrue(userPermissions.hasPermission("SPORTS"));

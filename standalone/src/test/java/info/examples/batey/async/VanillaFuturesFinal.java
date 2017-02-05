@@ -8,7 +8,7 @@ import java.util.concurrent.Future;
 
 import static org.junit.Assert.*;
 
-public class VanillaFutures {
+public class VanillaFuturesFinal {
 
     private UserService users = UserService.userService();
     private ChannelService channels = ChannelService.channelService();
@@ -92,6 +92,20 @@ public class VanillaFutures {
      */
     @Test(timeout = 1200)
     public void chbatey_watch_sky_sports_one_concurrent() throws Exception {
+        Future<Channel> fChannel = channels.lookupChannelAsync("SkySportsOne");
+
+        Future<User> fUser = users.lookupUserAsync("chbatey");
+
+        // Make the blocking explicit
+        user = fUser.get();
+
+        Future<Permissions> fPermissions = permissions.permissionsAsync(user.getUserId());
+
+        // Explicit blocking
+        userPermissions = fPermissions.get();
+
+        // Explicit blocking
+        channel = fChannel.get();
 
         assertNotNull(channel);
         assertTrue(userPermissions.hasPermission("SPORTS"));

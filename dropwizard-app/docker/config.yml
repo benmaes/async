@@ -1,0 +1,20 @@
+server:
+  maxThreads: 5
+  minThreads: 2
+  applicationConnectors:
+    - type: http
+      port: 9080
+      acceptorThreads: 1
+      selectorThreads: 1
+  adminConnectors:
+    - type: http
+      port: 8081
+      acceptorThreads: 1
+      selectorThreads: 1
+logging:
+  level: INFO
+  appenders:
+    - type: console
+      threshold: DEBUG
+      target: stdout
+      logFormat: "%date %-5level %boldRed([%thread]) - [%logger]- %msg%n"

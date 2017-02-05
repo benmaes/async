@@ -17,9 +17,9 @@ import static com.google.common.util.concurrent.Futures.transformAsync;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class ListenableFutures {
+public class ListenableFuturesFinal {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ListenableFutures.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ListenableFuturesFinal.class);
     private final ScheduledExecutorService es = Executors.newScheduledThreadPool(10);
     private UserService users = UserService.userService();
     private ChannelService channels = ChannelService.channelService();
@@ -66,7 +66,31 @@ public class ListenableFutures {
      */
     @Test
     public void chbatey_has_sports_callbacks() throws Exception {
+        ListenableFuture<User> lUser = users.lookupUserListenable("chbatey");
+        Futures.addCallback(lUser, new FutureCallback<User>() {
+            @Override
+            public void onSuccess(User result) {
+                ListenableFuture<Permissions> lPermissions = permissions.permissionsListenable(result.getUserId());
 
+                Futures.addCallback(lPermissions, new FutureCallback<Permissions>() {
+                    @Override
+                    public void onSuccess(Permissions result) {
+                        // We can do it!
+                        result.hasPermission("SPORTS");
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+
+            }
+        });
     }
 
     /**
@@ -84,7 +108,7 @@ public class ListenableFutures {
 
         // Transform async takes a Future -> Function that produces a future -> Future
         ListenableFuture<Permissions> permissionsListenableFuture = transformAsync(lUser,
-            input -> permissions.permissionsListenable(input.getUserId()));
+                input -> permissions.permissionsListenable(input.getUserId()));
 
         userPermissions = permissionsListenableFuture.get();
 
@@ -94,6 +118,35 @@ public class ListenableFutures {
 
     @Test
     public void chbatey_has_sports_transform_no_blocking() throws Exception {
+        ListenableFuture<User> lUser = users.lookupUserListenable("chbatey");
+
+        // Transform async takes a Future -> Function that produces a future -> Future
+        ListenableFuture<Permissions> lPermissions = transformAsync(lUser,
+                input -> permissions.permissionsListenable(input.getUserId()));
+
+        ListenableFuture<Channel> lChannel = channels
+            .lookupChannelListenable("SkySportsOne");
+
+        // How to combine these?
+        ListenableFuture<List<Object>> lWholeOperation = Futures
+            .allAsList(lChannel, lPermissions);
+
+        ListenableFuture<Result> lResult = Futures
+            .transform(lWholeOperation, this::fromList);
+
+        Futures.addCallback(lResult, new FutureCallback<Result>() {
+            @Override
+            public void onSuccess(Result result) {
+                result.getChannel();
+                result.getPermissions().hasPermission("SPORTS");
+
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+
+            }
+        });
 
     }
 
@@ -182,9 +235,9 @@ public class ListenableFutures {
     }
 
     public ListenableFuture<Result> combine(ListenableFuture<Channel> futureA,
-        final ListenableFuture<Permissions> futureB) {
+                                            final ListenableFuture<Permissions> futureB) {
         return Futures.transformAsync(futureA, a ->
-            Futures.transform(futureB, (Function<Permissions, Result>) b ->
-                new Result(a, b)));
+                Futures.transform(futureB, (Function<Permissions, Result>) b ->
+                        new Result(a, b)));
     }
 }

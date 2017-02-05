@@ -29,62 +29,65 @@ public class AsyncTvService {
     @Path("/user/{user}")
     @Produces("text/plain")
     public void user(@Suspended AsyncResponse asyncResponse,
-                     @PathParam("user") String userName) {
-        users.lookupUserCompletable(userName).thenAccept(user -> asyncResponse.resume(user.getName()));
+        @PathParam("user") String userName) {
+
     }
 
     @GET
     @Path("/user/{user}/{permission}")
     public void userPermission(@Suspended AsyncResponse asyncResponse,
-                                  @PathParam("user") String userName,
-                                  @PathParam("permission") String permission) {
-        users.lookupUserCompletable(userName)
-                .thenCompose(user -> permissions.permissionsCompletable(user.getUserId()))
-                .thenAccept(p -> asyncResponse.resume(p.hasPermission(permission)));
+        @PathParam("user") String userName,
+        @PathParam("permission") String permission) {
+
     }
 
     @GET
     @Path("/watch-channel/{user}/{permission}/{channel}")
     public void watchChannel(@Suspended AsyncResponse asyncResponse,
-                                @PathParam("user") String userName,
-                                @PathParam("permission") String permission,
-                                @PathParam("channel") String channel) {
-        CompletableFuture<Permissions> cPermission = users.lookupUserCompletable(userName)
-                .thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
+        @PathParam("user") String userName,
+        @PathParam("permission") String permission,
+        @PathParam("channel") String channel) {
 
-        CompletableFuture<Channel> cChannel = channels.lookupChannelCompletable(channel);
-
-        CompletableFuture<Result> cResult = cPermission.thenCombine(cChannel, (p, c) -> new Result(c, p));
-
-        cResult.thenAccept(result -> asyncResponse.resume(
-                result.getChannel() != null && result.getPermissions().hasPermission(permission)
-        ));
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @GET
     @Path("/watch-channel-fast/{user}/{permission}/{channel}")
     public void watchChannelFast(@PathParam("user") String userName,
-                                    @PathParam("permission") String permission,
-                                    @PathParam("channel") String channel) {
+        @PathParam("permission") String permission,
+        @PathParam("channel") String channel) {
         // no need to implement, it just happened
     }
 
     @GET
     @Path("/watch-channel-timeout/{user}/{permission}/{channel}")
     public void watchChannelTimeout(@Suspended AsyncResponse asyncResponse,
-                                    @PathParam("user") String userName,
-                                    @PathParam("permission") String permission,
-                                    @PathParam("channel") String channel) {
+        @PathParam("user") String userName,
+        @PathParam("permission") String permission,
+        @PathParam("channel") String channel) {
 
-         CompletableFuture<Permissions> cPermission = users.lookupUserCompletable(userName)
-                .thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
+        CompletableFuture<Permissions> cPermission = users.lookupUserCompletable(userName)
+            .thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
 
         CompletableFuture<Channel> cChannel = channels.lookupChannelCompletable(channel);
 
         CompletableFuture<Result> cResult = cPermission.thenCombine(cChannel, (p, c) -> new Result(c, p));
 
         cResult.thenAccept(result -> asyncResponse.resume(
-                result.getChannel() != null && result.getPermissions().hasPermission(permission)
+            result.getChannel() != null && result.getPermissions().hasPermission(permission)
         ));
 
         asyncResponse.setTimeout(500, TimeUnit.MILLISECONDS);

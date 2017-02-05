@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 import static org.junit.Assert.*;
 
-public class CompletableFutures {
+public class CompletableFuturesFinal {
 
     private static Logger LOG = LoggerFactory.getLogger(CompletableFuture.class);
 
@@ -68,7 +68,7 @@ public class CompletableFutures {
     public void chbatey_has_sports_compose_and_block() throws Exception {
         CompletableFuture<User> cUser = users.lookupUserCompletable("chbatey");
         CompletableFuture<Permissions> cPermissions =
-            cUser.thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
+                cUser.thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
 
         // blocks but we could have used a call back
         userPermissions = cPermissions.get();
@@ -80,7 +80,7 @@ public class CompletableFutures {
     public void chbatey_has_sports_compose_no_blocking() throws Exception {
         CompletableFuture<User> cUser = users.lookupUserCompletable("chbatey");
         CompletableFuture<Permissions> cPermissions =
-            cUser.thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
+                cUser.thenCompose(user -> permissions.permissionsCompletable(user.getUserId()));
 
         cPermissions.thenAccept((Permissions p) -> {
             p.hasPermission("SPORTS");
@@ -98,7 +98,23 @@ public class CompletableFutures {
      */
     @Test(timeout = 1200)
     public void chbatey_watch_sky_sports_one() throws Exception {
+        CompletableFuture<User> cUser = users.lookupUserCompletable("chbatey");
+        CompletableFuture<Permissions> cPermissions = cUser.thenCompose(u -> permissions.permissionsCompletable(u.getUserId()));
+        CompletableFuture<Channel> cChannel = channels.lookupChannelCompletable("SkySportsOne");
 
+        CompletableFuture<Result> cResult = cPermissions.thenCombine(cChannel, (p, c) -> new Result(c, p));
+        cResult.thenAccept(result -> {
+            result.getChannel();
+            result.getPermissions().hasPermission("SPORTS");
+        });
+
+        channel = cChannel.get();
+        userPermissions = cPermissions.get();
+        user = cUser.get(); // will definitely be done as permissions is done
+
+        assertNotNull(channel);
+        assertTrue(userPermissions.hasPermission("SPORTS"));
+        assertNotNull(user);
     }
 
 

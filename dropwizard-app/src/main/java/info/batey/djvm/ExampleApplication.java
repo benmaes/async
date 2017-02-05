@@ -16,7 +16,7 @@ public class ExampleApplication extends Application<Config> {
         final HttpClient httpClient = new HttpClientBuilder(environment).using(config.getHttpClientConfiguration())
                 .build("http-client");
         environment.jersey().register(new SyncTvService());
-        environment.jersey().register(new AsyncTvService());
+        environment.jersey().register(new AsyncTvServiceFinal());
         environment.jersey().register(new BasicService(httpClient));
     }
 }

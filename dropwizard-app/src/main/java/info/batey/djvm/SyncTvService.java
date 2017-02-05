@@ -25,7 +25,7 @@ public class SyncTvService {
     @GET
     @Path("/user/{user}")
     public String user(@PathParam("user") String userName) {
-        User user = users.lookupUser(userName);
+        User user = users.lookupUser(userName); // 500ms
         return user.getName();
     }
 
@@ -34,7 +34,7 @@ public class SyncTvService {
     public boolean userPermission(@PathParam("user") String userName,
                                   @PathParam("permission") String permission) {
         User user = users.lookupUser(userName);
-        Permissions p = permissions.permissions(user.getUserName());
+        Permissions p = permissions.permissions(user.getUserId()); // depends on user service result
         return p.hasPermission(permission);
     }
 
@@ -44,8 +44,8 @@ public class SyncTvService {
                                 @PathParam("permission") String permission,
                                 @PathParam("channel") String channel) {
         User user = users.lookupUser(userName);
-        Permissions p = permissions.permissions(user.getUserName());
-        Channel c = channels.lookupChannel(channel);
+        Permissions p = permissions.permissions(user.getUserId());
+        Channel c = channels.lookupChannel(channel); // make sure channel exists
         return c != null && p.hasPermission(permission);
 
     }
@@ -57,7 +57,7 @@ public class SyncTvService {
                                     @PathParam("channel") String channel) throws Exception {
         Future<Channel> fChannel = se.submit(() -> channels.lookupChannel(channel));
         User user = users.lookupUser(userName);
-        Permissions p = permissions.permissions(user.getUserName());
+        Permissions p = permissions.permissions(user.getUserId());
         Channel c = fChannel.get();
         return c != null && p.hasPermission(permission);
     }
@@ -71,7 +71,7 @@ public class SyncTvService {
         Future<Result> fResult = se.submit(() -> {
             Future<Channel> fChannel = se.submit(() -> channels.lookupChannel(channel));
             User user = users.lookupUser(userName);
-            Permissions p = permissions.permissions(user.getUserName());
+            Permissions p = permissions.permissions(user.getUserId());
             Channel c = fChannel.get();
             return new Result(c, p);
         });
